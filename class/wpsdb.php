@@ -5,6 +5,7 @@ class WPSDB extends WPSDB_Base {
 	protected $form_defaults;
 	protected $accepted_fields;
 	protected $default_profile;
+	protected $checkbox_options;
 	protected $maximum_chunk_size;
 	protected $current_chunk = '';
 	protected $connection_details;
@@ -192,7 +193,7 @@ class WPSDB extends WPSDB_Base {
 				exit;
 			}
 			if (!copy($source, $dest)) {
-				_e(sprintf('Could not copy the compatibility plugin from %1$s to %2$s', $source, $destination), 'wp-sync-db');
+				_e(sprintf('Could not copy the compatibility plugin from %1$s to %2$s', $source, $dest), 'wp-sync-db');
 				exit;
 			}
 		} else { // uninstall MU plugin
@@ -1366,6 +1367,7 @@ class WPSDB extends WPSDB_Base {
 
 			<?php
 			$hide_warning = apply_filters('wpsdb_hide_set_time_limit_warning', false);
+			$safe_mode = ini_get('safe_mode');
 			if (false == $this->set_time_limit_available() && !$hide_warning && !$safe_mode) {
 			?>
 				<div class="updated warning inline-message">
