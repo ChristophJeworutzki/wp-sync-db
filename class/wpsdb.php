@@ -1221,7 +1221,8 @@ class WPSDB extends WPSDB_Base {
 		global $wpdb;
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT table_name, TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = %s',
+				// MySQL 8 returns INFORMATION_SCHEMA column names in uppercase regardless of the query, so alias them
+				'SELECT TABLE_NAME AS table_name, TABLE_ROWS AS TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = %s',
 				DB_NAME
 			),
 			ARRAY_A
@@ -2128,8 +2129,7 @@ class WPSDB extends WPSDB_Base {
 		if (!empty($a_name) && $a_name != '*') {
 			if (is_array($a_name)) {
 				$result = array();
-				reset($a_name);
-				while (list($key, $val) = each($a_name))
+				foreach ($a_name as $key => $val)
 					$result[$key] = '`' . $val . '`';
 				return $result;
 			} else {
