@@ -729,7 +729,7 @@ class WPSDB extends WPSDB_Base {
 				$this->fp = $this->open($sql_dump_file_name);
 			}
 			$result = $this->export_table($_POST['table']);
-			if ($_POST['intent'] == 'savefile') {
+			if ($_POST['intent'] == 'savefile' && isset($this->fp)) {
 				$this->close($this->fp);
 			}
 			ob_start();
@@ -1431,6 +1431,7 @@ class WPSDB extends WPSDB_Base {
 			$nl_nix = "\n";
 			$nl_win = "\r\n";
 			$nl_mac = "\r";
+			$crlf = $nl_nix;
 			if (strpos($create_query, $nl_win) !== false) {
 				$crlf = $nl_win;
 			} elseif (strpos($create_query, $nl_mac) !== false) {
@@ -1528,7 +1529,7 @@ class WPSDB extends WPSDB_Base {
 	 * to use the WordPress $wpdb object
 	 *
 	 * @param string  $table
-	 * @return void
+	 * @return mixed
 	 */
 	function export_table($table) {
 		global $wpdb;
@@ -1660,6 +1661,7 @@ class WPSDB extends WPSDB_Base {
 
 		$this->primary_keys = array();
 		$use_primary_keys = true;
+		$field_set = array();
 		foreach ($table_structure as $col) {
 			$field_set[] = $this->backquote($col->Field);
 			if ($col->Key == 'PRI' && true == $use_primary_keys) {
@@ -2046,7 +2048,7 @@ class WPSDB extends WPSDB_Base {
 	function close($fp) {
 		if ($this->gzip() && isset($this->form_data['gzip_file'])) gzclose($fp);
 		else fclose($fp);
-		unset($this->fp);
+		$this->fp = null;
 	}
 
 	function stow($query_line, $replace = true) {
@@ -2478,7 +2480,7 @@ class WPSDB extends WPSDB_Base {
 		}
 
 		if (false === @unlink($dump_file)) {
-			e('Could not delete the MySQL export file.', 'wp-sync-db');
+			_e('Could not delete the MySQL export file.', 'wp-sync-db');
 			exit;
 		}
 	}

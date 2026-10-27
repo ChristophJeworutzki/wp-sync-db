@@ -34,7 +34,13 @@ class WPSDB_Base {
 			)
 		);
 
-		$this->invalid_content_verification_error = __( 'Invalid content verification signature, please verify the connection information on the remote site and try again.', 'wp-sync-db' );
+		// translated strings must not be loaded before init (WordPress 6.7+)
+		if ( did_action( 'init' ) ) {
+			$this->load_translated_strings();
+		}
+		else {
+			add_action( 'init', array( $this, 'load_translated_strings' ) );
+		}
 
 		$this->transient_timeout = 60 * 60 * 12;
 		$this->transient_retry_timeout = 60 * 60 * 2;
@@ -56,6 +62,10 @@ class WPSDB_Base {
 
 		// allow devs to change the temporary prefix applied to the tables
 		$this->temp_prefix = apply_filters( 'wpsdb_temporary_prefix', $this->temp_prefix );
+	}
+
+	function load_translated_strings() {
+		$this->invalid_content_verification_error = __( 'Invalid content verification signature, please verify the connection information on the remote site and try again.', 'wp-sync-db' );
 	}
 
 	function template( $template ) {
@@ -340,6 +350,7 @@ class WPSDB_Base {
 		global $wpdb;
 		$prefix = ( $scope == 'temp' ? $this->temp_prefix : $wpdb->prefix );
 		$tables = $wpdb->get_results( 'SHOW FULL TABLES', ARRAY_N );
+		$clean_tables = array();
 		foreach ( $tables as $table ) {
 			if ( ( ( $scope == 'temp' || $scope == 'prefix' ) && 0 !== strpos( $table[0], $prefix ) ) || $table[1] == 'VIEW' ) {
 				continue;
